@@ -132,10 +132,64 @@ curl http://localhost:8080/health
 
 ## Environment Variables
 
-| Variable  | Description              | Default |
-|-----------|--------------------------|---------|
-| PORT      | HTTP server port         | 8080    |
-| GIN_MODE  | Gin mode (debug/release) | release |
+| Variable            | Description              | Default                  |
+|---------------------|--------------------------|--------------------------|
+| PORT                | HTTP server port         | 8080                     |
+| GIN_MODE            | Gin mode (debug/release) | release                  |
+| DATABASE_HOST       | PostgreSQL host          | postgres                 |
+| DATABASE_PORT       | PostgreSQL port          | 5432                     |
+| DATABASE_USER       | PostgreSQL username      | transactions             |
+| DATABASE_PASSWORD   | PostgreSQL password      | transactions_password    |
+| DATABASE_NAME       | PostgreSQL database name | transactions_platform    |
+| DATABASE_SSLMODE    | PostgreSQL SSL mode      | disable                  |
+
+## Docker
+
+The application includes Docker support with PostgreSQL database.
+
+### Quick Start with Docker
+
+```bash
+# Copy environment file
+cp .env.example .env
+
+# Build and start containers
+make docker-up
+
+# View logs
+make docker-logs
+
+# Stop containers
+make docker-down
+```
+
+### Manual Docker Commands
+
+```bash
+# Build the Docker image
+docker-compose build
+
+# Start services in background
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+
+# Remove volumes (WARNING: deletes database data)
+docker-compose down -v
+```
+
+### Services
+
+- **app**: API server (http://localhost:8080)
+- **postgres**: PostgreSQL database (localhost:5432)
+
+### Database Migrations
+
+The project uses migrations instead of init scripts. See the migrations section for setup instructions.
 
 ## Commands
 
