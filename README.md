@@ -153,7 +153,7 @@ The application includes Docker support with PostgreSQL database.
 # Copy environment file
 cp .env.example .env
 
-# Build and start containers
+# Build and start containers (automatically runs migrations)
 make docker-up
 
 # View logs
@@ -162,6 +162,8 @@ make docker-logs
 # Stop containers
 make docker-down
 ```
+
+**Note:** `make docker-up` automatically runs database migrations after the containers start. If migrations fail, you can run them manually with `make migrate-up`.
 
 ### Manual Docker Commands
 
@@ -189,7 +191,66 @@ docker-compose down -v
 
 ### Database Migrations
 
-The project uses migrations instead of init scripts. See the migrations section for setup instructions.
+The project uses [Goose](https://github.com/pressly/goose) for database migrations.
+
+#### Running Migrations
+
+```bash
+# Run all pending migrations
+make migrate-up
+
+# Rollback the last migration
+make migrate-down
+
+# Check migration status
+make migrate-status
+
+# Create a new migration
+make migrate-create
+```
+
+#### Migration Workflow
+
+1. **Create a new migration:**
+   ```bash
+   make migrate-create
+   # Enter migration name when prompted (e.g., "create_users_table")
+   ```
+
+2. **Edit the migration file** in `migrations/` directory:
+   ```sql
+   -- +goose Up
+   CREATE TABLE users (
+       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+       email VARCHAR(255) UNIQUE NOT NULL,
+       created_at TIMESTAMP DEFAULT NOW()
+   );
+
+   -- +goose Down
+   DROP TABLE users;
+   ```
+
+3. **Run the migration:**
+   ```bash
+   make migrate-up
+   ```
+
+#### Environment Variables for Migrations
+
+Set these in your `.env` file or export them:
+```bash
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=transactions
+DB_PASSWORD=transactions_password
+DB_NAME=transactions_platform
+DB_SSLMODE=disable
+```
+
+Or use a custom DSN:
+```bash
+DB_DSN="host=localhost port=5432 user=myuser password=mypass dbname=mydb sslmode=disable" make migrate-up
+```
 
 ## Commands
 
