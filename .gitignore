@@ -17,8 +17,14 @@ coverage.*
 *.coverprofile
 profile.cov
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Dependency directories
+vendor/
+
+# Build artifacts
+bin/
+
+# Swagger generated docs (optional - remove if you want to commit them)
+# docs/
 
 # Go workspace file
 go.work
