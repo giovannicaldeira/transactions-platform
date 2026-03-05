@@ -6,29 +6,34 @@ A Go-based API platform built with [Gin](https://github.com/gin-gonic/gin) web f
 
 ```
 transactions-platform/
-├── cmd/              # CLI commands (Cobra)
-│   ├── root.go      # Root command
-│   └── api.go       # API server command
-├── internal/        # Private application code
-│   ├── app/         # Application logic
-│   │   └── api.go   # API server build and run functions
-│   └── handlers/    # HTTP handlers
-│       └── health.go # Health check endpoint
-├── main.go          # Application entry point
-├── go.mod           # Go module definition
-└── Makefile         # Build automation
+├── cmd/              # CLI commands using Cobra
+├── docs/             # Auto-generated Swagger/OpenAPI documentation
+├── internal/         # Private application code
+│   ├── app/         # Application initialization and server setup
+│   ├── database/    # Database connection and configuration
+│   ├── handlers/    # HTTP request handlers (controllers)
+│   ├── logger/      # Structured logging with zerolog
+│   ├── models/      # Domain models and DTOs
+│   ├── repository/  # Data access layer (database operations)
+│   └── service/     # Business logic layer
+├── migrations/       # Database migrations using Goose
+├── Dockerfile        # Multi-stage Docker build
+├── docker-compose.yml # Docker services (app + PostgreSQL)
+├── Makefile          # Build automation and commands
+└── main.go           # Application entry point
 ```
 
 ## Features
 
-- ✅ Gin web framework for high-performance HTTP handling
-- ✅ Cobra CLI for command management
-- ✅ Graceful shutdown handling
-- ✅ Health check endpoint
-- ✅ Structured logging with middleware
-- ✅ Panic recovery middleware
-- ✅ Configurable port via environment variable
-- ✅ Swagger/OpenAPI documentation
+- ✅ **Clean Architecture** - Layered design (handlers → service → repository)
+- ✅ **High Performance** - Gin web framework with optimized routing
+- ✅ **Structured Logging** - zerolog with JSON output and request tracking
+- ✅ **Financial Precision** - Decimal.Decimal for accurate money calculations
+- ✅ **Database Migrations** - Goose for version-controlled schema changes
+- ✅ **Docker Ready** - Multi-stage builds with PostgreSQL integration
+- ✅ **API Documentation** - Auto-generated Swagger/OpenAPI specs
+- ✅ **Comprehensive Tests** - 62.5% coverage with table-driven tests
+- ✅ **Graceful Shutdown** - Proper signal handling and cleanup
 
 ## Getting Started
 
@@ -47,45 +52,42 @@ cd transactions-platform
 go mod download
 ```
 
-### Running the Application
+### Development Commands
 
 ```bash
-# Run directly
-make run
-# or
-go run . api
+# Build
+make build                # Build binary to ./bin/transactions-platform
+make clean                # Clean build artifacts
 
-# Build and run binary
-make build
-./bin/transactions-platform api
+# Run
+make run                  # Run directly with go run
+./bin/transactions-platform api  # Run built binary
+PORT=3000 make run        # Run with custom port
 
-# With custom port
-PORT=3000 ./bin/transactions-platform api
-```
+# Testing
+make test                 # Run all tests
+make test-coverage        # Run tests with coverage report
+make coverage-html        # Generate HTML coverage report
 
-### Development
+# Docker
+make docker-build         # Build Docker image
+make docker-up            # Start all services (app + DB)
+make docker-up-deps       # Start only PostgreSQL
+make docker-down          # Stop all services
+make docker-logs          # View container logs
 
-```bash
-# Run tests
-make test
+# Database
+make migrate-up           # Run pending migrations
+make migrate-down         # Rollback last migration
+make migrate-status       # Check migration status
+make migrate-create       # Create new migration
 
-# Run tests with coverage
-make test-coverage
+# Documentation
+make swagger              # Generate Swagger docs
 
-# Generate HTML coverage report
-make coverage-html
-
-# Generate Swagger documentation
-make swagger
-
-# Update vendor directory
-make vendor
-
-# Clean build artifacts
-make clean
-
-# Show available commands
-make help
+# Utilities
+make vendor               # Update vendor directory
+make help                 # Show all available commands
 ```
 
 ## How to Test
@@ -383,32 +385,6 @@ echo "✅ All tests completed!"
 
 Save as `test.sh`, make executable with `chmod +x test.sh`, and run with `./test.sh`.
 
-## API Documentation
-
-The API documentation is automatically generated using Swagger/OpenAPI and is available at:
-
-**Swagger UI:** `http://localhost:8080/swagger/index.html`
-
-The Swagger documentation provides:
-- Interactive API documentation
-- Request/response examples
-- Schema definitions
-- Try-it-out functionality
-
-### Regenerating Swagger Docs
-
-After modifying API endpoints or adding new handlers with Swagger annotations:
-
-```bash
-make swagger
-```
-
-Or manually:
-
-```bash
-swag init --parseDependency --parseInternal
-```
-
 ## API Endpoints
 
 | Method | Path              | Description              | Swagger Docs |
@@ -505,144 +481,50 @@ The application logs:
 
 ## Docker
 
-The application includes Docker support with PostgreSQL database.
+The application uses Docker with PostgreSQL. Migrations run automatically when starting containers.
 
-### Quick Start with Docker
+**Services:**
+- **app**: API server → `http://localhost:8080`
+- **postgres**: PostgreSQL database → `localhost:5432`
+
+**Common workflows:**
 
 ```bash
-# Copy environment file
-cp .env.example .env
-
-# Build and start ALL containers (app + PostgreSQL, runs migrations)
+# Full stack (app + DB) - recommended for testing
 make docker-up
 
-# OR start ONLY dependencies for local development
+# Local development (DB only, run app locally)
 make docker-up-deps
-
-# View logs
-make docker-logs
-
-# Stop containers
-make docker-down
-```
-
-**Note:** Both `make docker-up` and `make docker-up-deps` automatically run database migrations after the containers start. If migrations fail, you can run them manually with `make migrate-up`.
-
-### Development Workflows
-
-**Local development (run app locally, use Docker for DB):**
-```bash
-# 1. Start only PostgreSQL
-make docker-up-deps
-
-# 2. Run app locally
 make run
 
-# 3. App connects to PostgreSQL on localhost:5432
-```
+# Stop all containers
+make docker-down
 
-**Full Docker deployment:**
-```bash
-# Start everything (app + PostgreSQL)
-make docker-up
-```
-
-### Manual Docker Commands
-
-```bash
-# Build the Docker image
-docker-compose build
-
-# Start all services
-docker-compose up -d
-
-# Start only PostgreSQL
-docker-compose up -d postgres
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
-
-# Remove volumes (WARNING: deletes database data)
+# Remove volumes (deletes database data)
 docker-compose down -v
 ```
 
-### Services
-
-- **app**: API server (http://localhost:8080)
-- **postgres**: PostgreSQL database (localhost:5432)
-
 ### Database Migrations
 
-The project uses [Goose](https://github.com/pressly/goose) for database migrations.
+Uses [Goose](https://github.com/pressly/goose) for migrations. Migrations run automatically with `docker-up` and `docker-up-deps`.
 
-#### Running Migrations
-
+**Manual migration commands:**
 ```bash
-# Run all pending migrations
-make migrate-up
-
-# Rollback the last migration
-make migrate-down
-
-# Check migration status
-make migrate-status
-
-# Create a new migration
-make migrate-create
+make migrate-up          # Apply pending migrations
+make migrate-down        # Rollback last migration
+make migrate-status      # Check status
+make migrate-create      # Create new migration
 ```
 
-#### Migration Workflow
+**Example migration file** (`migrations/YYYYMMDDHHMMSS_description.sql`):
+```sql
+-- +goose Up
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
+);
 
-1. **Create a new migration:**
-   ```bash
-   make migrate-create
-   # Enter migration name when prompted (e.g., "create_users_table")
-   ```
-
-2. **Edit the migration file** in `migrations/` directory:
-   ```sql
-   -- +goose Up
-   CREATE TABLE users (
-       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-       email VARCHAR(255) UNIQUE NOT NULL,
-       created_at TIMESTAMP DEFAULT NOW()
-   );
-
-   -- +goose Down
-   DROP TABLE users;
-   ```
-
-3. **Run the migration:**
-   ```bash
-   make migrate-up
-   ```
-
-#### Environment Variables for Migrations
-
-Set these in your `.env` file or export them:
-```bash
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=transactions
-DB_PASSWORD=transactions_password
-DB_NAME=transactions_platform
-DB_SSLMODE=disable
-```
-
-Or use a custom DSN:
-```bash
-DB_DSN="host=localhost port=5432 user=myuser password=mypass dbname=mydb sslmode=disable" make migrate-up
-```
-
-## Commands
-
-```bash
-# Show available commands
-./bin/transactions-platform --help
-
-# Run API server
-./bin/transactions-platform api
+-- +goose Down
+DROP TABLE users;
 ```
