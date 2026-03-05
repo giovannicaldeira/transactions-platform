@@ -34,7 +34,7 @@ transactions-platform/
 
 ### Prerequisites
 
-- Go 1.21 or higher
+- Go 1.25 or higher
 
 ### Installation
 
@@ -121,6 +121,7 @@ swag init --parseDependency --parseInternal
 | GET    | /health           | Health check             |
 | POST   | /accounts         | Create a new account     |
 | GET    | /accounts/:id     | Get account by ID        |
+| POST   | /transactions     | Create a new transaction |
 | GET    | /swagger/*any     | Swagger documentation    |
 
 ### Example Requests
@@ -159,6 +160,35 @@ Response:
 ```bash
 curl http://localhost:8080/accounts/550e8400-e29b-41d4-a716-446655440000
 ```
+
+**Create Transaction:**
+```bash
+curl -X POST http://localhost:8080/transactions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "account_id": "550e8400-e29b-41d4-a716-446655440000",
+    "operation_type": "NORMAL_PURCHASE",
+    "amount": 123.45
+  }'
+```
+
+Response:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440002",
+  "account_id": "550e8400-e29b-41d4-a716-446655440000",
+  "amount": -123.45,
+  "event_date": "2026-03-05T12:00:00Z",
+  "operation_type": "NORMAL_PURCHASE",
+  "created_at": "2026-03-05T12:00:00Z"
+}
+```
+
+**Operation Types:**
+- `NORMAL_PURCHASE` - Regular purchase (negative amount)
+- `PURCHASE_WITH_INSTALLMENTS` - Installment purchase (negative amount)
+- `WITHDRAWAL` - Cash withdrawal (negative amount)
+- `CREDIT_VOUCHER` - Payment/credit (positive amount)
 
 ## Environment Variables
 

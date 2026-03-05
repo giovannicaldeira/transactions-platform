@@ -32,6 +32,57 @@ definitions:
     required:
     - document_number
     type: object
+  models.CreateTransactionRequest:
+    properties:
+      account_id:
+        example: 550e8400-e29b-41d4-a716-446655440001
+        type: string
+      amount:
+        example: 123.45
+        type: number
+      operation_type:
+        allOf:
+        - $ref: '#/definitions/models.OperationType'
+        example: NORMAL_PURCHASE
+    required:
+    - account_id
+    - amount
+    - operation_type
+    type: object
+  models.OperationType:
+    enum:
+    - NORMAL_PURCHASE
+    - PURCHASE_WITH_INSTALLMENTS
+    - WITHDRAWAL
+    - CREDIT_VOUCHER
+    type: string
+    x-enum-varnames:
+    - NormalPurchase
+    - PurchaseWithInstallments
+    - Withdrawal
+    - CreditVoucher
+  models.Transaction:
+    properties:
+      account_id:
+        example: 550e8400-e29b-41d4-a716-446655440001
+        type: string
+      amount:
+        example: -123.45
+        type: number
+      created_at:
+        example: "2026-03-05T12:00:00Z"
+        type: string
+      event_date:
+        example: "2026-03-05T12:00:00Z"
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      operation_type:
+        allOf:
+        - $ref: '#/definitions/models.OperationType'
+        example: NORMAL_PURCHASE
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -127,6 +178,52 @@ paths:
       summary: Health check endpoint
       tags:
       - health
+  /transactions:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new transaction for an account
+      parameters:
+      - description: Transaction creation request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new transaction
+      tags:
+      - transactions
 schemes:
 - http
 - https

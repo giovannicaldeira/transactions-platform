@@ -148,6 +148,76 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/transactions": {
+            "post": {
+                "description": "Creates a new transaction for an account",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "transactions"
+                ],
+                "summary": "Create a new transaction",
+                "parameters": [
+                    {
+                        "description": "Transaction creation request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.CreateTransactionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Transaction"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -194,6 +264,80 @@ const docTemplate = `{
                 "document_number": {
                     "type": "string",
                     "example": "12345678900"
+                }
+            }
+        },
+        "models.CreateTransactionRequest": {
+            "type": "object",
+            "required": [
+                "account_id",
+                "amount",
+                "operation_type"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440001"
+                },
+                "amount": {
+                    "type": "number",
+                    "example": 123.45
+                },
+                "operation_type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.OperationType"
+                        }
+                    ],
+                    "example": "NORMAL_PURCHASE"
+                }
+            }
+        },
+        "models.OperationType": {
+            "type": "string",
+            "enum": [
+                "NORMAL_PURCHASE",
+                "PURCHASE_WITH_INSTALLMENTS",
+                "WITHDRAWAL",
+                "CREDIT_VOUCHER"
+            ],
+            "x-enum-varnames": [
+                "NormalPurchase",
+                "PurchaseWithInstallments",
+                "Withdrawal",
+                "CreditVoucher"
+            ]
+        },
+        "models.Transaction": {
+            "type": "object",
+            "properties": {
+                "account_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440001"
+                },
+                "amount": {
+                    "type": "number",
+                    "example": -123.45
+                },
+                "created_at": {
+                    "type": "string",
+                    "example": "2026-03-05T12:00:00Z"
+                },
+                "event_date": {
+                    "type": "string",
+                    "example": "2026-03-05T12:00:00Z"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "operation_type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.OperationType"
+                        }
+                    ],
+                    "example": "NORMAL_PURCHASE"
                 }
             }
         }

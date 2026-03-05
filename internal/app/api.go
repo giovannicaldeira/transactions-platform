@@ -16,6 +16,7 @@ import (
 	"github.com/transactions-platform/internal/database"
 	"github.com/transactions-platform/internal/handlers"
 	"github.com/transactions-platform/internal/repository"
+	"github.com/transactions-platform/internal/service"
 )
 
 type API struct {
@@ -49,9 +50,15 @@ func Build(ctx context.Context) (*API, error) {
 
 	// Initialize repositories
 	accountRepo := repository.NewAccountRepository(db)
+	transactionRepo := repository.NewTransactionRepository(db)
+
+	// Initialize services
+	accountService := service.NewAccountService(accountRepo)
+	transactionService := service.NewTransactionService(transactionRepo, accountRepo)
 
 	// Initialize handlers
-	accountHandler := handlers.NewAccountHandler(accountRepo)
+	accountHandler := handlers.NewAccountHandler(accountService)
+	transactionHandler := handlers.NewTransactionHandler(transactionService)
 
 	// Register health endpoint
 	router.GET("/health", handlers.HealthCheck)
@@ -59,6 +66,9 @@ func Build(ctx context.Context) (*API, error) {
 	// Register account endpoints
 	router.POST("/accounts", accountHandler.CreateAccount)
 	router.GET("/accounts/:id", accountHandler.GetAccount)
+
+	// Register transaction endpoints
+	router.POST("/transactions", transactionHandler.CreateTransaction)
 
 	// Swagger documentation
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

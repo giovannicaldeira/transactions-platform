@@ -39,4 +39,4 @@ go.work.sum
 .vscode/
 
 # Swagger files
-docs
+docs/
