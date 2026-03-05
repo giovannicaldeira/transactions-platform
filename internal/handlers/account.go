@@ -2,18 +2,19 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/transactions-platform/internal/models"
-	"github.com/transactions-platform/internal/repository"
+	"github.com/transactions-platform/internal/service"
 )
 
 type AccountHandler struct {
-	repo *repository.AccountRepository
+	service *service.AccountService
 }
 
-func NewAccountHandler(repo *repository.AccountRepository) *AccountHandler {
-	return &AccountHandler{repo: repo}
+func NewAccountHandler(service *service.AccountService) *AccountHandler {
+	return &AccountHandler{service: service}
 }
 
 // CreateAccount godoc
@@ -36,21 +37,14 @@ func (h *AccountHandler) CreateAccount(c *gin.Context) {
 		return
 	}
 
-	// Check if account with this document number already exists
-	existing, err := h.repo.GetByDocumentNumber(c.Request.Context(), req.DocumentNumber)
+	// Call service to create account
+	account, err := h.service.CreateAccount(c.Request.Context(), req.DocumentNumber)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check existing account"})
-		return
-	}
-
-	if existing != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "Account with this document number already exists"})
-		return
-	}
-
-	// Create the account
-	account, err := h.repo.Create(c.Request.Context(), req.DocumentNumber)
-	if err != nil {
+		// Determine appropriate status code based on error
+		if strings.Contains(err.Error(), "already exists") {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create account"})
 		return
 	}
@@ -72,9 +66,9 @@ func (h *AccountHandler) CreateAccount(c *gin.Context) {
 func (h *AccountHandler) GetAccount(c *gin.Context) {
 	id := c.Param("id")
 
-	account, err := h.repo.GetByID(c.Request.Context(), id)
+	account, err := h.service.GetAccountByID(c.Request.Context(), id)
 	if err != nil {
-		if err.Error() == "account not found" {
+		if strings.Contains(err.Error(), "not found") {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Account not found"})
 			return
 		}

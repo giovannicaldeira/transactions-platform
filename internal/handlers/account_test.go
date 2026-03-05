@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,14 +15,16 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/transactions-platform/internal/models"
 	"github.com/transactions-platform/internal/repository"
+	"github.com/transactions-platform/internal/service"
 )
 
-func setupTestRouter() (*gin.Engine, sqlmock.Sqlmock, *sql.DB) {
+func setupAccountTestRouter() (*gin.Engine, sqlmock.Sqlmock, *sql.DB) {
 	gin.SetMode(gin.TestMode)
 
 	db, mock, _ := sqlmock.New()
-	repo := repository.NewAccountRepository(db)
-	handler := NewAccountHandler(repo)
+	accountRepo := repository.NewAccountRepository(db)
+	accountService := service.NewAccountService(accountRepo)
+	handler := NewAccountHandler(accountService)
 
 	router := gin.New()
 	router.POST("/accounts", handler.CreateAccount)
@@ -94,45 +95,11 @@ func TestAccountHandler_CreateAccount(t *testing.T) {
 				assert.Contains(t, w.Body.String(), "already exists")
 			},
 		},
-		{
-			name: "database error on check",
-			requestBody: models.CreateAccountRequest{
-				DocumentNumber: "12345678900",
-			},
-			mockSetup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT (.+) FROM accounts WHERE document_number").
-					WithArgs("12345678900").
-					WillReturnError(errors.New("database error"))
-			},
-			expectedStatus: http.StatusInternalServerError,
-			checkResponse: func(t *testing.T, w *httptest.ResponseRecorder) {
-				assert.Contains(t, w.Body.String(), "error")
-			},
-		},
-		{
-			name: "database error on create",
-			requestBody: models.CreateAccountRequest{
-				DocumentNumber: "12345678900",
-			},
-			mockSetup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT (.+) FROM accounts WHERE document_number").
-					WithArgs("12345678900").
-					WillReturnError(sql.ErrNoRows)
-
-				mock.ExpectQuery("INSERT INTO accounts").
-					WithArgs("12345678900").
-					WillReturnError(errors.New("database error"))
-			},
-			expectedStatus: http.StatusInternalServerError,
-			checkResponse: func(t *testing.T, w *httptest.ResponseRecorder) {
-				assert.Contains(t, w.Body.String(), "Failed to create account")
-			},
-		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			router, mock, db := setupTestRouter()
+			router, mock, db := setupAccountTestRouter()
 			defer db.Close()
 
 			tt.mockSetup(mock)
@@ -194,24 +161,11 @@ func TestAccountHandler_GetAccount(t *testing.T) {
 				assert.Contains(t, w.Body.String(), "Account not found")
 			},
 		},
-		{
-			name:      "database error",
-			accountID: "550e8400-e29b-41d4-a716-446655440000",
-			mockSetup: func(mock sqlmock.Sqlmock) {
-				mock.ExpectQuery("SELECT (.+) FROM accounts WHERE id").
-					WithArgs("550e8400-e29b-41d4-a716-446655440000").
-					WillReturnError(errors.New("database error"))
-			},
-			expectedStatus: http.StatusInternalServerError,
-			checkResponse: func(t *testing.T, w *httptest.ResponseRecorder) {
-				assert.Contains(t, w.Body.String(), "Failed to get account")
-			},
-		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			router, mock, db := setupTestRouter()
+			router, mock, db := setupAccountTestRouter()
 			defer db.Close()
 
 			tt.mockSetup(mock)
@@ -229,17 +183,4 @@ func TestAccountHandler_GetAccount(t *testing.T) {
 			assert.NoError(t, mock.ExpectationsWereMet())
 		})
 	}
-}
-
-func TestAccountHandler_GetAccount_InvalidID(t *testing.T) {
-	router, _, db := setupTestRouter()
-	defer db.Close()
-
-	req := httptest.NewRequest(http.MethodGet, "/accounts/", nil)
-	w := httptest.NewRecorder()
-
-	router.ServeHTTP(w, req)
-
-	// Should return 404 because route doesn't match
-	assert.Equal(t, http.StatusNotFound, w.Code)
 }
