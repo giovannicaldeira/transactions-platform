@@ -14,6 +14,7 @@ import (
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/transactions-platform/internal/dto"
 	"github.com/transactions-platform/internal/models"
 	"github.com/transactions-platform/internal/repository"
 	"github.com/transactions-platform/internal/service"
@@ -44,7 +45,7 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 	}{
 		{
 			name: "successful purchase transaction",
-			requestBody: models.CreateTransactionRequest{
+			requestBody: dto.CreateTransactionRequest{
 				AccountID:     "550e8400-e29b-41d4-a716-446655440000",
 				OperationType: models.NormalPurchase,
 				Amount:        decimal.NewFromFloat(123.45),
@@ -76,7 +77,7 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 		},
 		{
 			name: "successful credit voucher transaction",
-			requestBody: models.CreateTransactionRequest{
+			requestBody: dto.CreateTransactionRequest{
 				AccountID:     "550e8400-e29b-41d4-a716-446655440000",
 				OperationType: models.CreditVoucher,
 				Amount:        decimal.NewFromFloat(100.00),
@@ -114,7 +115,7 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 		},
 		{
 			name: "invalid operation type",
-			requestBody: models.CreateTransactionRequest{
+			requestBody: dto.CreateTransactionRequest{
 				AccountID:     "550e8400-e29b-41d4-a716-446655440000",
 				OperationType: "INVALID_TYPE",
 				Amount:        decimal.NewFromFloat(123.45),
@@ -127,7 +128,7 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 		},
 		{
 			name: "invalid amount - zero",
-			requestBody: models.CreateTransactionRequest{
+			requestBody: dto.CreateTransactionRequest{
 				AccountID:     "550e8400-e29b-41d4-a716-446655440000",
 				OperationType: models.NormalPurchase,
 				Amount:        decimal.Zero,
@@ -140,7 +141,7 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 		},
 		{
 			name: "invalid amount - negative",
-			requestBody: models.CreateTransactionRequest{
+			requestBody: dto.CreateTransactionRequest{
 				AccountID:     "550e8400-e29b-41d4-a716-446655440000",
 				OperationType: models.NormalPurchase,
 				Amount:        decimal.NewFromFloat(-50.00),
@@ -153,7 +154,7 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 		},
 		{
 			name: "account not found",
-			requestBody: models.CreateTransactionRequest{
+			requestBody: dto.CreateTransactionRequest{
 				AccountID:     "non-existent",
 				OperationType: models.NormalPurchase,
 				Amount:        decimal.NewFromFloat(123.45),
@@ -170,7 +171,7 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 		},
 		{
 			name: "successful withdrawal transaction",
-			requestBody: models.CreateTransactionRequest{
+			requestBody: dto.CreateTransactionRequest{
 				AccountID:     "550e8400-e29b-41d4-a716-446655440000",
 				OperationType: models.Withdrawal,
 				Amount:        decimal.NewFromFloat(50.00),
@@ -199,7 +200,7 @@ func TestTransactionHandler_CreateTransaction(t *testing.T) {
 		},
 		{
 			name: "successful installment purchase transaction",
-			requestBody: models.CreateTransactionRequest{
+			requestBody: dto.CreateTransactionRequest{
 				AccountID:     "550e8400-e29b-41d4-a716-446655440000",
 				OperationType: models.PurchaseWithInstallments,
 				Amount:        decimal.NewFromFloat(300.00),

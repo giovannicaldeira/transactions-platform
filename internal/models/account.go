@@ -8,7 +8,3 @@ type Account struct {
 	CreatedAt      time.Time `json:"-"`
 	UpdatedAt      time.Time `json:"-"`
 }
-
-type CreateAccountRequest struct {
-	DocumentNumber string `json:"document_number" binding:"required" example:"12345678900"`
-}

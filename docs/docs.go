@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreateAccountRequest"
+                            "$ref": "#/definitions/dto.CreateAccountRequest"
                         }
                     }
                 ],
@@ -169,7 +169,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.CreateTransactionRequest"
+                            "$ref": "#/definitions/dto.CreateTransactionRequest"
                         }
                     }
                 ],
@@ -221,6 +221,44 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.CreateAccountRequest": {
+            "type": "object",
+            "required": [
+                "document_number"
+            ],
+            "properties": {
+                "document_number": {
+                    "type": "string",
+                    "example": "12345678900"
+                }
+            }
+        },
+        "dto.CreateTransactionRequest": {
+            "type": "object",
+            "required": [
+                "account_id",
+                "amount",
+                "operation_type"
+            ],
+            "properties": {
+                "account_id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440001"
+                },
+                "amount": {
+                    "type": "number",
+                    "example": 123.45
+                },
+                "operation_type": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.OperationType"
+                        }
+                    ],
+                    "example": "NORMAL_PURCHASE"
+                }
+            }
+        },
         "handlers.HealthResponse": {
             "type": "object",
             "properties": {
@@ -244,44 +282,6 @@ const docTemplate = `{
                 "id": {
                     "type": "string",
                     "example": "550e8400-e29b-41d4-a716-446655440000"
-                }
-            }
-        },
-        "models.CreateAccountRequest": {
-            "type": "object",
-            "required": [
-                "document_number"
-            ],
-            "properties": {
-                "document_number": {
-                    "type": "string",
-                    "example": "12345678900"
-                }
-            }
-        },
-        "models.CreateTransactionRequest": {
-            "type": "object",
-            "required": [
-                "account_id",
-                "amount",
-                "operation_type"
-            ],
-            "properties": {
-                "account_id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440001"
-                },
-                "amount": {
-                    "type": "number",
-                    "example": 123.45
-                },
-                "operation_type": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.OperationType"
-                        }
-                    ],
-                    "example": "NORMAL_PURCHASE"
                 }
             }
         },

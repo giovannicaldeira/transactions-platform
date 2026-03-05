@@ -5,8 +5,9 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/transactions-platform/internal/dto"
 	"github.com/transactions-platform/internal/logger"
-	"github.com/transactions-platform/internal/models"
+	_ "github.com/transactions-platform/internal/models" // imported for swagger docs
 	"github.com/transactions-platform/internal/service"
 )
 
@@ -24,14 +25,14 @@ func NewAccountHandler(service *service.AccountService) *AccountHandler {
 // @Tags         accounts
 // @Accept       json
 // @Produce      json
-// @Param        request body models.CreateAccountRequest true "Account creation request"
+// @Param        request body dto.CreateAccountRequest true "Account creation request"
 // @Success      201  {object}  models.Account
 // @Failure      400  {object}  map[string]string
 // @Failure      409  {object}  map[string]string
 // @Failure      500  {object}  map[string]string
 // @Router       /accounts [post]
 func (h *AccountHandler) CreateAccount(c *gin.Context) {
-	var req models.CreateAccountRequest
+	var req dto.CreateAccountRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logger.Warn("Invalid request body for account creation").

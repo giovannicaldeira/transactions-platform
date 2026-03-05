@@ -5,8 +5,9 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/transactions-platform/internal/dto"
 	"github.com/transactions-platform/internal/logger"
-	"github.com/transactions-platform/internal/models"
+	_ "github.com/transactions-platform/internal/models" // imported for swagger docs
 	"github.com/transactions-platform/internal/service"
 )
 
@@ -24,7 +25,7 @@ func NewTransactionHandler(service *service.TransactionService) *TransactionHand
 // @Tags         transactions
 // @Accept       json
 // @Produce      json
-// @Param        request body models.CreateTransactionRequest true "Transaction creation request"
+// @Param        request body dto.CreateTransactionRequest true "Transaction creation request"
 // @Success      201  {object}  models.Transaction
 // @Failure      400  {object}  map[string]string
 // @Failure      404  {object}  map[string]string
@@ -32,7 +33,7 @@ func NewTransactionHandler(service *service.TransactionService) *TransactionHand
 // @Failure      500  {object}  map[string]string
 // @Router       /transactions [post]
 func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
-	var req models.CreateTransactionRequest
+	var req dto.CreateTransactionRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		logger.Warn("Invalid request body for transaction creation").

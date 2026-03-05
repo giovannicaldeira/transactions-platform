@@ -24,12 +24,6 @@ type Transaction struct {
 	CreatedAt     time.Time       `json:"created_at" example:"2026-03-05T12:00:00Z"`
 }
 
-type CreateTransactionRequest struct {
-	AccountID     string          `json:"account_id" binding:"required" example:"550e8400-e29b-41d4-a716-446655440001"`
-	OperationType OperationType   `json:"operation_type" binding:"required" example:"NORMAL_PURCHASE"`
-	Amount        decimal.Decimal `json:"amount" binding:"required" example:"123.45"`
-}
-
 func (o OperationType) IsValid() bool {
 	switch o {
 	case NormalPurchase, PurchaseWithInstallments, Withdrawal, CreditVoucher:

@@ -11,9 +11,10 @@ transactions-platform/
 ├── internal/         # Private application code
 │   ├── app/         # Application initialization and server setup
 │   ├── database/    # Database connection and configuration
+│   ├── dto/         # Data Transfer Objects (API request/response)
 │   ├── handlers/    # HTTP request handlers (controllers)
 │   ├── logger/      # Structured logging with zerolog
-│   ├── models/      # Domain models and DTOs
+│   ├── models/      # Domain models and entities
 │   ├── repository/  # Data access layer (database operations)
 │   └── service/     # Business logic layer
 ├── migrations/       # Database migrations using Goose

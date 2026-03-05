@@ -1,5 +1,30 @@
 basePath: /
 definitions:
+  dto.CreateAccountRequest:
+    properties:
+      document_number:
+        example: "12345678900"
+        type: string
+    required:
+    - document_number
+    type: object
+  dto.CreateTransactionRequest:
+    properties:
+      account_id:
+        example: 550e8400-e29b-41d4-a716-446655440001
+        type: string
+      amount:
+        example: 123.45
+        type: number
+      operation_type:
+        allOf:
+        - $ref: '#/definitions/models.OperationType'
+        example: NORMAL_PURCHASE
+    required:
+    - account_id
+    - amount
+    - operation_type
+    type: object
   handlers.HealthResponse:
     properties:
       status:
@@ -17,31 +42,6 @@ definitions:
       id:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
-    type: object
-  models.CreateAccountRequest:
-    properties:
-      document_number:
-        example: "12345678900"
-        type: string
-    required:
-    - document_number
-    type: object
-  models.CreateTransactionRequest:
-    properties:
-      account_id:
-        example: 550e8400-e29b-41d4-a716-446655440001
-        type: string
-      amount:
-        example: 123.45
-        type: number
-      operation_type:
-        allOf:
-        - $ref: '#/definitions/models.OperationType'
-        example: NORMAL_PURCHASE
-    required:
-    - account_id
-    - amount
-    - operation_type
     type: object
   models.OperationType:
     enum:
@@ -95,7 +95,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.CreateAccountRequest'
+          $ref: '#/definitions/dto.CreateAccountRequest'
       produces:
       - application/json
       responses:
@@ -183,7 +183,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.CreateTransactionRequest'
+          $ref: '#/definitions/dto.CreateTransactionRequest'
       produces:
       - application/json
       responses:

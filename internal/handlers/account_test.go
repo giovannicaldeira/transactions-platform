@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/transactions-platform/internal/dto"
 	"github.com/transactions-platform/internal/models"
 	"github.com/transactions-platform/internal/repository"
 	"github.com/transactions-platform/internal/service"
@@ -43,7 +44,7 @@ func TestAccountHandler_CreateAccount(t *testing.T) {
 	}{
 		{
 			name: "successful account creation",
-			requestBody: models.CreateAccountRequest{
+			requestBody: dto.CreateAccountRequest{
 				DocumentNumber: "12345678900",
 			},
 			mockSetup: func(mock sqlmock.Sqlmock) {
@@ -79,7 +80,7 @@ func TestAccountHandler_CreateAccount(t *testing.T) {
 		},
 		{
 			name: "duplicate document number",
-			requestBody: models.CreateAccountRequest{
+			requestBody: dto.CreateAccountRequest{
 				DocumentNumber: "12345678900",
 			},
 			mockSetup: func(mock sqlmock.Sqlmock) {
