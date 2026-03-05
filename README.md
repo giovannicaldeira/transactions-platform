@@ -69,6 +69,12 @@ PORT=3000 ./bin/transactions-platform api
 # Run tests
 make test
 
+# Run tests with coverage
+make test-coverage
+
+# Generate HTML coverage report
+make coverage-html
+
 # Generate Swagger documentation
 make swagger
 
@@ -110,24 +116,48 @@ swag init --parseDependency --parseInternal
 
 ## API Endpoints
 
-| Method | Path       | Description              |
-|--------|-----------|--------------------------|
-| GET    | /health   | Health check             |
-| GET    | /swagger/*any | Swagger documentation |
+| Method | Path              | Description              |
+|--------|-------------------|--------------------------|
+| GET    | /health           | Health check             |
+| POST   | /accounts         | Create a new account     |
+| GET    | /accounts/:id     | Get account by ID        |
+| GET    | /swagger/*any     | Swagger documentation    |
 
-### Example Request
+### Example Requests
 
+**Health Check:**
 ```bash
 curl http://localhost:8080/health
 ```
 
-### Example Response
-
+Response:
 ```json
 {
   "status": "healthy",
   "timestamp": "2026-03-03T14:33:50.098537Z"
 }
+```
+
+**Create Account:**
+```bash
+curl -X POST http://localhost:8080/accounts \
+  -H "Content-Type: application/json" \
+  -d '{"document_number": "12345678900"}'
+```
+
+Response:
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "document_number": "12345678900",
+  "created_at": "2026-03-04T12:00:00Z",
+  "updated_at": "2026-03-04T12:00:00Z"
+}
+```
+
+**Get Account:**
+```bash
+curl http://localhost:8080/accounts/550e8400-e29b-41d4-a716-446655440000
 ```
 
 ## Environment Variables
@@ -153,8 +183,11 @@ The application includes Docker support with PostgreSQL database.
 # Copy environment file
 cp .env.example .env
 
-# Build and start containers (automatically runs migrations)
+# Build and start ALL containers (app + PostgreSQL, runs migrations)
 make docker-up
+
+# OR start ONLY dependencies for local development
+make docker-up-deps
 
 # View logs
 make docker-logs
@@ -163,7 +196,26 @@ make docker-logs
 make docker-down
 ```
 
-**Note:** `make docker-up` automatically runs database migrations after the containers start. If migrations fail, you can run them manually with `make migrate-up`.
+**Note:** Both `make docker-up` and `make docker-up-deps` automatically run database migrations after the containers start. If migrations fail, you can run them manually with `make migrate-up`.
+
+### Development Workflows
+
+**Local development (run app locally, use Docker for DB):**
+```bash
+# 1. Start only PostgreSQL
+make docker-up-deps
+
+# 2. Run app locally
+make run
+
+# 3. App connects to PostgreSQL on localhost:5432
+```
+
+**Full Docker deployment:**
+```bash
+# Start everything (app + PostgreSQL)
+make docker-up
+```
 
 ### Manual Docker Commands
 
@@ -171,8 +223,11 @@ make docker-down
 # Build the Docker image
 docker-compose build
 
-# Start services in background
+# Start all services
 docker-compose up -d
+
+# Start only PostgreSQL
+docker-compose up -d postgres
 
 # View logs
 docker-compose logs -f

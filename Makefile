@@ -1,4 +1,4 @@
-.PHONY: build run run-api test clean vendor swagger docker-build docker-up docker-down docker-logs migrate-up migrate-down migrate-status migrate-create help
+.PHONY: build run run-api test test-coverage coverage-html clean vendor swagger docker-build docker-up docker-up-deps docker-down docker-logs migrate-up migrate-down migrate-status migrate-create help
 
 # Docker image configuration
 DOCKER_IMAGE_NAME ?= transactions-platform
@@ -31,10 +31,26 @@ test:
 	@echo "Running tests..."
 	go test -v ./...
 
+# Run tests with coverage
+test-coverage:
+	@echo "Running tests with coverage..."
+	@go test -v -cover ./... -coverprofile=coverage.out
+	@echo ""
+	@echo "Coverage Summary:"
+	@go tool cover -func=coverage.out | grep total | awk '{print "Total Coverage: " $$3}'
+
+# Generate HTML coverage report
+coverage-html: test-coverage
+	@echo "Generating HTML coverage report..."
+	@go tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report generated: coverage.html"
+	@echo "Open it with: open coverage.html"
+
 # Clean build artifacts
 clean:
 	@echo "Cleaning build artifacts..."
 	rm -rf bin/
+	rm -f coverage.out coverage.html
 
 # Update vendor directory
 vendor:
@@ -57,6 +73,13 @@ docker-up: docker-build
 	@echo "Starting Docker containers..."
 	docker-compose up -d --wait
 	@echo "Database is ready!"
+	@echo "Running database migrations..."
+	@$(MAKE) migrate-up || echo "⚠️  Migration failed. Run 'make migrate-up' manually after fixing the issue."
+
+docker-up-deps:
+	@echo "Starting dependencies (PostgreSQL)..."
+	docker-compose up -d postgres --wait
+	@echo "PostgreSQL is ready!"
 	@echo "Running database migrations..."
 	@$(MAKE) migrate-up || echo "⚠️  Migration failed. Run 'make migrate-up' manually after fixing the issue."
 
@@ -96,11 +119,14 @@ help:
 	@echo "  make build              - Build the application binary (generates swagger docs)"
 	@echo "  make run                - Run the API server"
 	@echo "  make test               - Run tests"
+	@echo "  make test-coverage      - Run tests with coverage report"
+	@echo "  make coverage-html      - Generate HTML coverage report"
 	@echo "  make swagger            - Generate Swagger documentation"
-	@echo "  make clean              - Clean build artifacts"
+	@echo "  make clean              - Clean build artifacts and coverage files"
 	@echo "  make vendor             - Update vendor directory"
 	@echo "  make docker-build       - Build Docker image"
 	@echo "  make docker-up          - Start Docker containers and run migrations"
+	@echo "  make docker-up-deps     - Start only dependencies (PostgreSQL) and run migrations"
 	@echo "  make docker-down        - Stop Docker containers"
 	@echo "  make docker-logs        - Show Docker container logs"
 	@echo "  make migrate-up         - Run all pending migrations"

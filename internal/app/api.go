@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,12 +13,15 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	_ "github.com/transactions-platform/docs" // Import swagger docs
+	"github.com/transactions-platform/internal/database"
 	"github.com/transactions-platform/internal/handlers"
+	"github.com/transactions-platform/internal/repository"
 )
 
 type API struct {
 	server *http.Server
 	router *gin.Engine
+	db     *sql.DB
 	port   string
 }
 
@@ -25,6 +29,13 @@ func Build(ctx context.Context) (*API, error) {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
+	}
+
+	// Connect to database
+	dbConfig := database.NewConfigFromEnv()
+	db, err := database.Connect(dbConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	// Set Gin mode based on environment
@@ -36,8 +47,18 @@ func Build(ctx context.Context) (*API, error) {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
-	// Register handlers
+	// Initialize repositories
+	accountRepo := repository.NewAccountRepository(db)
+
+	// Initialize handlers
+	accountHandler := handlers.NewAccountHandler(accountRepo)
+
+	// Register health endpoint
 	router.GET("/health", handlers.HealthCheck)
+
+	// Register account endpoints
+	router.POST("/accounts", accountHandler.CreateAccount)
+	router.GET("/accounts/:id", accountHandler.GetAccount)
 
 	// Swagger documentation
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -53,6 +74,7 @@ func Build(ctx context.Context) (*API, error) {
 	return &API{
 		server: server,
 		router: router,
+		db:     db,
 		port:   port,
 	}, nil
 }
@@ -86,6 +108,14 @@ func (a *API) Run(ctx context.Context) error {
 }
 
 func (a *API) Close(ctx context.Context) error {
+	// Close database connection
+	if a.db != nil {
+		if err := a.db.Close(); err != nil {
+			log.Printf("Error closing database: %v", err)
+		}
+	}
+
+	// Close server
 	if a.server != nil {
 		return a.server.Close()
 	}
