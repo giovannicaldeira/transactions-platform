@@ -237,10 +237,6 @@ const docTemplate = `{
         "models.Account": {
             "type": "object",
             "properties": {
-                "created_at": {
-                    "type": "string",
-                    "example": "2026-03-04T12:00:00Z"
-                },
                 "document_number": {
                     "type": "string",
                     "example": "12345678900"
@@ -248,10 +244,6 @@ const docTemplate = `{
                 "id": {
                     "type": "string",
                     "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "updated_at": {
-                    "type": "string",
-                    "example": "2026-03-04T12:00:00Z"
                 }
             }
         },

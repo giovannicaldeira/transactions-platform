@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -15,6 +14,7 @@ import (
 	_ "github.com/transactions-platform/docs" // Import swagger docs
 	"github.com/transactions-platform/internal/database"
 	"github.com/transactions-platform/internal/handlers"
+	"github.com/transactions-platform/internal/logger"
 	"github.com/transactions-platform/internal/repository"
 	"github.com/transactions-platform/internal/service"
 )
@@ -27,17 +27,27 @@ type API struct {
 }
 
 func Build(ctx context.Context) (*API, error) {
+	// Initialize logger
+	logger.Init()
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
+	logger.Info("Starting application").
+		Str("port", port).
+		Str("environment", os.Getenv("APP_ENV")).
+		Send()
+
 	// Connect to database
 	dbConfig := database.NewConfigFromEnv()
 	db, err := database.Connect(dbConfig)
 	if err != nil {
+		logger.Error("Failed to connect to database").Err(err).Send()
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
+	logger.Info("Database connection established").Send()
 
 	// Set Gin mode based on environment
 	if os.Getenv("GIN_MODE") == "" {
@@ -45,8 +55,8 @@ func Build(ctx context.Context) (*API, error) {
 	}
 
 	router := gin.New()
-	router.Use(gin.Logger())
-	router.Use(gin.Recovery())
+	router.Use(logger.GinLogger())
+	router.Use(logger.GinRecovery())
 
 	// Initialize repositories
 	accountRepo := repository.NewAccountRepository(db)
@@ -94,8 +104,12 @@ func (a *API) Run(ctx context.Context) error {
 
 	// Start server in a goroutine
 	go func() {
-		log.Printf("Starting server on port %s", a.port)
+		logger.Info("Server listening").
+			Str("port", a.port).
+			Str("address", a.server.Addr).
+			Send()
 		if err := a.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Error("Server failed to start").Err(err).Send()
 			errChan <- fmt.Errorf("server failed to start: %w", err)
 		}
 	}()
@@ -103,14 +117,15 @@ func (a *API) Run(ctx context.Context) error {
 	// Wait for context cancellation or server error
 	select {
 	case <-ctx.Done():
-		log.Println("Shutting down server...")
+		logger.Info("Shutdown signal received, gracefully shutting down server").Send()
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
 		if err := a.server.Shutdown(shutdownCtx); err != nil {
+			logger.Error("Server forced to shutdown").Err(err).Send()
 			return fmt.Errorf("server forced to shutdown: %w", err)
 		}
-		log.Println("Server exited gracefully")
+		logger.Info("Server shutdown completed successfully").Send()
 		return nil
 	case err := <-errChan:
 		return err
@@ -118,10 +133,14 @@ func (a *API) Run(ctx context.Context) error {
 }
 
 func (a *API) Close(ctx context.Context) error {
+	logger.Info("Closing application resources").Send()
+
 	// Close database connection
 	if a.db != nil {
 		if err := a.db.Close(); err != nil {
-			log.Printf("Error closing database: %v", err)
+			logger.Error("Error closing database connection").Err(err).Send()
+		} else {
+			logger.Info("Database connection closed").Send()
 		}
 	}
 

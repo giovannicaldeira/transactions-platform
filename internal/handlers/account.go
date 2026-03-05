@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/transactions-platform/internal/logger"
 	"github.com/transactions-platform/internal/models"
 	"github.com/transactions-platform/internal/service"
 )
@@ -33,21 +34,41 @@ func (h *AccountHandler) CreateAccount(c *gin.Context) {
 	var req models.CreateAccountRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.Warn("Invalid request body for account creation").
+			Err(err).
+			Str("ip", c.ClientIP()).
+			Send()
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
 		return
 	}
+
+	logger.Info("Creating new account").
+		Str("document_number", req.DocumentNumber).
+		Send()
 
 	// Call service to create account
 	account, err := h.service.CreateAccount(c.Request.Context(), req.DocumentNumber)
 	if err != nil {
 		// Determine appropriate status code based on error
 		if strings.Contains(err.Error(), "already exists") {
+			logger.Warn("Account creation failed - duplicate document number").
+				Str("document_number", req.DocumentNumber).
+				Send()
 			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 			return
 		}
+		logger.Error("Failed to create account").
+			Err(err).
+			Str("document_number", req.DocumentNumber).
+			Send()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create account"})
 		return
 	}
+
+	logger.Info("Account created successfully").
+		Str("account_id", account.ID).
+		Str("document_number", account.DocumentNumber).
+		Send()
 
 	c.JSON(http.StatusCreated, account)
 }
@@ -66,15 +87,24 @@ func (h *AccountHandler) CreateAccount(c *gin.Context) {
 func (h *AccountHandler) GetAccount(c *gin.Context) {
 	id := c.Param("id")
 
+	logger.Debug("Fetching account").Str("account_id", id).Send()
+
 	account, err := h.service.GetAccountByID(c.Request.Context(), id)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
+			logger.Debug("Account not found").Str("account_id", id).Send()
 			c.JSON(http.StatusNotFound, gin.H{"error": "Account not found"})
 			return
 		}
+		logger.Error("Failed to get account").
+			Err(err).
+			Str("account_id", id).
+			Send()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get account"})
 		return
 	}
+
+	logger.Debug("Account fetched successfully").Str("account_id", id).Send()
 
 	c.JSON(http.StatusOK, account)
 }

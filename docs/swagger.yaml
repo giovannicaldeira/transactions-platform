@@ -11,17 +11,11 @@ definitions:
     type: object
   models.Account:
     properties:
-      created_at:
-        example: "2026-03-04T12:00:00Z"
-        type: string
       document_number:
         example: "12345678900"
         type: string
       id:
         example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      updated_at:
-        example: "2026-03-04T12:00:00Z"
         type: string
     type: object
   models.CreateAccountRequest:
