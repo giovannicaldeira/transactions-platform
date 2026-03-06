@@ -6,22 +6,22 @@ A Go-based API platform built with [Gin](https://github.com/gin-gonic/gin) web f
 
 ```
 transactions-platform/
-├── cmd/              # CLI commands using Cobra
-├── docs/             # Auto-generated Swagger/OpenAPI documentation
-├── internal/         # Private application code
-│   ├── app/         # Application initialization and server setup
-│   ├── database/    # Database connection and configuration
-│   ├── dto/         # Data Transfer Objects (API request/response)
-│   ├── handlers/    # HTTP request handlers (controllers)
-│   ├── logger/      # Structured logging with zerolog
-│   ├── models/      # Domain models and entities
-│   ├── repository/  # Data access layer (database operations)
-│   └── service/     # Business logic layer
-├── migrations/       # Database migrations using Goose
-├── Dockerfile        # Multi-stage Docker build
-├── docker-compose.yml # Docker services (app + PostgreSQL)
-├── Makefile          # Build automation and commands
-└── main.go           # Application entry point
+├── cmd/                # CLI commands using Cobra
+├── docs/               # Auto-generated Swagger/OpenAPI documentation
+├── internal/           # Private application code
+│   ├── app/            # Application initialization and server setup
+│   ├── database/       # Database connection and configuration
+│   ├── dto/            # Data Transfer Objects (API request/response)
+│   ├── handlers/       # HTTP request handlers (controllers)
+│   ├── logger/         # Structured logging with zerolog
+│   ├── models/         # Domain models and entities
+│   ├── repository/     # Data access layer (database operations)
+│   └── service/        # Business logic layer
+├── migrations/         # Database migrations using Goose
+├── Dockerfile          # Multi-stage Docker build
+├── docker-compose.yml  # Docker services (app + PostgreSQL)
+├── Makefile            # Build automation and commands
+└── main.go             # Application entry point
 ```
 
 ## Features
